@@ -1,0 +1,5 @@
+__pycache__/
+*.pptx
+*.txt
+poetry.lock
+mypy.ini
