@@ -15,15 +15,67 @@ X_multi_class_train = pd.read_parquet("parquets/X_multi_class_train.parquet")
 
 st.set_page_config(page_title="AI in orthopaedics 2024", page_icon="🦴", layout="wide")
 
+def get_base64_image(image_path):
+    with open(image_path, "rb") as file:
+        encoded = base64.b64encode(file.read()).decode("utf-8")
+    return encoded
+
+
+LEFT_LOGO_PATH = "assets/SETT_Github_Logo.png"
+RIGHT_LOGO_PATH = "assets/wessex_deanery_uos.png"
+left_logo_base64 = get_base64_image(LEFT_LOGO_PATH)
+right_logo_base64 = get_base64_image(RIGHT_LOGO_PATH)
+st.markdown(
+    f"""
+    <style>
+        /* Header container */
+        .header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: inherit;
+        }}
+        .header .logo-left {{
+            width: 100px;
+            height: auto;
+        }}
+        .header .logo-right {{
+            width: 100px;
+            height: auto;
+        }}
+    </style>
+    <div class="header">
+        <img class="logo-left" src="data:image/png;base64,{left_logo_base64}" alt="Left Logo">
+        <img class="logo-right" src="data:image/png;base64,{right_logo_base64}" alt="Right Logo">
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <style>
+    .centered-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+    </style>
+    <div class="centered-title">
+        Spine Parameters Prediction - AI in Orthopaedics 2024
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 col1, col2 = st.columns([1, 1], vertical_alignment="center")
 prediction = None
 predictions = None
 class_normal_prediction = None
 class_abnormal_prediction = None
-fig = None
-with col1:
-    st.title("Spine Parameters Prediction with Multiple Models")
 
+with col1:
     model_choice = st.radio("Select a Model", ["Binary", "Multiclass"])
 
     pelvic_incidence = st.number_input("Pelvic Incidence", value=34.76)
@@ -33,7 +85,7 @@ with col1:
     pelvic_radius = st.number_input("Pelvic Radius", value=127.14)
     degree_spondylolisthesis = st.number_input("Degree Spondylolisthesis", value=-0.46)
 
-    if st.button("Predict"):
+    if st.button("Predict", type="primary", icon="🪄", use_container_width=True):
         match model_choice:
             case "Binary":
                 scaler = binary_pipeline.named_steps["scaler"]
@@ -122,8 +174,7 @@ with col1:
                     ]
                 ]
 
-                if prediction != 'Spondylolisthesis':
-
+                if prediction != "Spondylolisthesis":
                     hernia_explainer = shap.LinearExplainer(
                         ExtendedPipeline(hierarchical_pipeline.hernia_pipeline),
                         hierarchical_pipeline.scale_hernia(hernia_features),
