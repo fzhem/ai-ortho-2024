@@ -14,14 +14,13 @@ seaborn = "^0.13.2"
 scipy = "^1.14.1"
 scikit-learn = "^1.5.2"
 tensorflow = "^2.16.1"
-tensorflow-intel = "^2.16.1"
+tensorflow-intel = { version = "^2.16.1", markers = "platform_system == 'Windows'" }
 tensorflow-io-gcs-filesystem = { version = "0.31.0", python = ">=3.10,<3.12", markers = "platform_system == 'Windows'" }
 keras-tuner = "^1.4.7"
 tf-keras = "^2.18.0"
 streamlit = "^1.40.2"
 joblib = "^1.4.2"
 shap = "^0.46.0"
-pyqt6 = "^6.7.1"
 
 
 [tool.poetry.group.dev.dependencies]
