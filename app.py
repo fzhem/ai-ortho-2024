@@ -23,8 +23,10 @@ def get_base64_image(image_path):
 
 LEFT_LOGO_PATH = "assets/SETT_Github_Logo.png"
 RIGHT_LOGO_PATH = "assets/wessex_deanery_uos.png"
+CENTER_LOGO_PATH = "assets/center_logo.png"
 left_logo_base64 = get_base64_image(LEFT_LOGO_PATH)
 right_logo_base64 = get_base64_image(RIGHT_LOGO_PATH)
+center_logo_base64 = get_base64_image(CENTER_LOGO_PATH)
 st.markdown(
     f"""
     <style>
@@ -35,18 +37,26 @@ st.markdown(
             align-items: center;
             background-color: inherit;
         }}
-        .header .logo-left {{
-            width: 100px;
-            height: auto;
+        .header .logo-container {{
+            flex: 1;
+            display: flex;
+            justify-content: center;
         }}
-        .header .logo-right {{
-            width: 100px;
-            height: auto;
+        .header .logo {{
+            height: 80px;
+            width: auto;
         }}
     </style>
     <div class="header">
-        <img class="logo-left" src="data:image/png;base64,{left_logo_base64}" alt="Left Logo">
-        <img class="logo-right" src="data:image/png;base64,{right_logo_base64}" alt="Right Logo">
+        <div class="logo-container" style="justify-content: flex-start;">
+            <img class="logo" src="data:image/png;base64,{left_logo_base64}" alt="Left Logo">
+        </div>
+        <div class="logo-container">
+            <img class="logo" src="data:image/png;base64,{center_logo_base64}" alt="Center Logo">
+        </div>
+        <div class="logo-container" style="justify-content: flex-end;">
+            <img class="logo" src="data:image/png;base64,{right_logo_base64}" alt="Right Logo">
+        </div>
     </div>
     """,
     unsafe_allow_html=True,
