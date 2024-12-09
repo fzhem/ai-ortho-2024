@@ -15,6 +15,7 @@ X_multi_class_train = pd.read_parquet("parquets/X_multi_class_train.parquet")
 
 st.set_page_config(page_title="AI in orthopaedics 2024", page_icon="🦴", layout="wide")
 
+
 def get_base64_image(image_path):
     with open(image_path, "rb") as file:
         encoded = base64.b64encode(file.read()).decode("utf-8")
@@ -175,14 +176,13 @@ with col1:
                 predictions = hierarchical_pipeline.predict(input_data)
                 prediction = predictions["final_prediction"].iloc[0]
 
-                hernia_features = X_multi_class_train[
-                    [
-                        "pelvic_tilt",
-                        "lumbar_lordosis_angle",
-                        "sacral_slope",
-                        "pelvic_radius",
-                    ]
+                hernia_columns = [
+                    "pelvic_tilt",
+                    "lumbar_lordosis_angle",
+                    "sacral_slope",
+                    "pelvic_radius",
                 ]
+                hernia_features = X_multi_class_train[hernia_columns]
 
                 if prediction != "Spondylolisthesis":
                     hernia_explainer = shap.LinearExplainer(
@@ -190,7 +190,21 @@ with col1:
                         hierarchical_pipeline.scale_hernia(hernia_features),
                         feature_names=hernia_features.columns,
                     )
-                    hernia_shap_values = hernia_explainer(hernia_features)
+                    hernia_shap_values = hernia_explainer(
+                        hierarchical_pipeline.scale_hernia(
+                            pd.DataFrame(
+                                [
+                                    [
+                                        pelvic_tilt,
+                                        lumbar_lordosis_angle,
+                                        sacral_slope,
+                                        pelvic_radius,
+                                    ]
+                                ],
+                                columns=hernia_columns,
+                            )
+                        )
+                    )
 
 with col2:
     if prediction is not None:
