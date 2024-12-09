@@ -99,12 +99,6 @@ class HierarchicalModel(EstimatorAttributeMixin):
         df_probabilities.loc[
             df_probabilities["class"] == "Non-Spondy", "normal_proba"
         ] = non_spondy_df["normal_proba"]
-        # df_probabilities.loc[
-        #     df_probabilities["class"] == "Non-Spondy", "spondy_proba"
-        # ] = 1 - (non_spondy_df["hernia_proba"] + non_spondy_df["normal_proba"])
-        # df_probabilities.loc[
-        #     df_probabilities["class"] == "Spondylolisthesis", "spondy_proba"
-        # ] = 1
 
         return df_probabilities
 
