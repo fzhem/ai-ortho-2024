@@ -90,11 +90,13 @@ with col1:
     model_choice = st.radio("Select a Model", ["Binary", "Multiclass"])
     match model_choice:
         case "Binary":
-            pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63)
-            sacral_slope = st.number_input("Sacral Slope", value=32.12)
-            pelvic_radius = st.number_input("Pelvic Radius", value=127.14)
+            pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63, max_value=60.0)
+            sacral_slope = st.number_input("Sacral Slope", value=32.12, max_value=85.0)
+            pelvic_radius = st.number_input(
+                "Pelvic Radius", value=127.14, max_value=170.0
+            )
             degree_spondylolisthesis = st.number_input(
-                "Degree Spondylolisthesis", value=-0.46
+                "Degree Spondylolisthesis", value=-0.46, max_value=100.0
             )
 
             scaler = binary_pipeline.named_steps["scaler"]
@@ -147,20 +149,20 @@ with col1:
             )
             shap_values = explainer(scaler.transform(input_data))
         case _:
-            pelvic_incidence = st.number_input("Pelvic Incidence", value=34.76)
-            pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63)
+            pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63, max_value=60.0)
             lumbar_lordosis_angle = st.number_input(
-                "Lumbar Lordosis Angle", value=29.50
+                "Lumbar Lordosis Angle", value=29.50, max_value=110.0
             )
-            sacral_slope = st.number_input("Sacral Slope", value=32.12)
-            pelvic_radius = st.number_input("Pelvic Radius", value=127.14)
+            sacral_slope = st.number_input("Sacral Slope", value=32.12, max_value=85.0)
+            pelvic_radius = st.number_input(
+                "Pelvic Radius", value=127.14, max_value=170.0
+            )
             degree_spondylolisthesis = st.number_input(
-                "Degree Spondylolisthesis", value=-0.46
+                "Degree Spondylolisthesis", value=-0.46, max_value=100.0
             )
 
             hierarchical_pipeline = HierarchicalModel.load("models/hierarchical.pkl")
             COLUMNS = [
-                "pelvic_incidence",
                 "pelvic_tilt",
                 "lumbar_lordosis_angle",
                 "sacral_slope",
@@ -170,7 +172,6 @@ with col1:
             input_data = pd.DataFrame(
                 [
                     [
-                        pelvic_incidence,
                         pelvic_tilt,
                         lumbar_lordosis_angle,
                         sacral_slope,
