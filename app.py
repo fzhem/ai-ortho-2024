@@ -88,27 +88,35 @@ class_abnormal_prediction = None
 
 with col1:
     model_choice = st.radio("Select a Model", ["Binary", "Multiclass"])
+    match model_choice:
+        case "Binary":
+            pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63)
+            sacral_slope = st.number_input("Sacral Slope", value=32.12)
+            pelvic_radius = st.number_input("Pelvic Radius", value=127.14)
+            degree_spondylolisthesis = st.number_input(
+                "Degree Spondylolisthesis", value=-0.46
+            )
 
-    pelvic_incidence = st.number_input("Pelvic Incidence", value=34.76)
-    pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63)
-    lumbar_lordosis_angle = st.number_input("Lumbar Lordosis Angle", value=29.50)
-    sacral_slope = st.number_input("Sacral Slope", value=32.12)
-    pelvic_radius = st.number_input("Pelvic Radius", value=127.14)
-    degree_spondylolisthesis = st.number_input("Degree Spondylolisthesis", value=-0.46)
-
-    if st.button("Predict", type="primary", icon="🪄", use_container_width=True):
-        match model_choice:
-            case "Binary":
-                scaler = binary_pipeline.named_steps["scaler"]
-                input_data = pd.DataFrame(
+            scaler = binary_pipeline.named_steps["scaler"]
+            input_data = pd.DataFrame(
+                [
                     [
-                        [
-                            pelvic_tilt,
-                            sacral_slope,
-                            pelvic_radius,
-                            degree_spondylolisthesis,
-                        ]
-                    ],
+                        pelvic_tilt,
+                        sacral_slope,
+                        pelvic_radius,
+                        degree_spondylolisthesis,
+                    ]
+                ],
+                columns=[
+                    "pelvic_tilt",
+                    "sacral_slope",
+                    "pelvic_radius",
+                    "degree_spondylolisthesis",
+                ],
+            )
+            prediction = binary_pipeline.predict(
+                pd.DataFrame(
+                    input_data,
                     columns=[
                         "pelvic_tilt",
                         "sacral_slope",
@@ -116,95 +124,103 @@ with col1:
                         "degree_spondylolisthesis",
                     ],
                 )
-                prediction = binary_pipeline.predict(
-                    pd.DataFrame(
-                        input_data,
-                        columns=[
-                            "pelvic_tilt",
-                            "sacral_slope",
-                            "pelvic_radius",
-                            "degree_spondylolisthesis",
-                        ],
-                    )
-                )[0]
+            )[0]
 
-                y_pred = binary_pipeline.predict_proba(
-                    pd.DataFrame(
-                        input_data,
-                        columns=[
-                            "pelvic_tilt",
-                            "sacral_slope",
-                            "pelvic_radius",
-                            "degree_spondylolisthesis",
-                        ],
+            y_pred = binary_pipeline.predict_proba(
+                pd.DataFrame(
+                    input_data,
+                    columns=[
+                        "pelvic_tilt",
+                        "sacral_slope",
+                        "pelvic_radius",
+                        "degree_spondylolisthesis",
+                    ],
+                )
+            )
+            class_abnormal_prediction = y_pred[:, 0].item()
+            class_normal_prediction = y_pred[:, 1].item()
+
+            explainer = shap.LinearExplainer(
+                ExtendedPipeline(binary_pipeline),
+                scaler.transform(X_binary_rfe_train),
+                feature_names=X_binary_rfe_train.columns,
+            )
+            shap_values = explainer(scaler.transform(input_data))
+        case _:
+            pelvic_incidence = st.number_input("Pelvic Incidence", value=34.76)
+            pelvic_tilt = st.number_input("Pelvic Tilt", value=2.63)
+            lumbar_lordosis_angle = st.number_input(
+                "Lumbar Lordosis Angle", value=29.50
+            )
+            sacral_slope = st.number_input("Sacral Slope", value=32.12)
+            pelvic_radius = st.number_input("Pelvic Radius", value=127.14)
+            degree_spondylolisthesis = st.number_input(
+                "Degree Spondylolisthesis", value=-0.46
+            )
+
+            hierarchical_pipeline = HierarchicalModel.load("models/hierarchical.pkl")
+            COLUMNS = [
+                "pelvic_incidence",
+                "pelvic_tilt",
+                "lumbar_lordosis_angle",
+                "sacral_slope",
+                "pelvic_radius",
+                "degree_spondylolisthesis",
+            ]
+            input_data = pd.DataFrame(
+                [
+                    [
+                        pelvic_incidence,
+                        pelvic_tilt,
+                        lumbar_lordosis_angle,
+                        sacral_slope,
+                        pelvic_radius,
+                        degree_spondylolisthesis,
+                    ]
+                ],
+                columns=COLUMNS,
+            )
+            predictions = hierarchical_pipeline.predict(input_data)
+            prediction = predictions["final_prediction"].iloc[0]
+
+            hernia_columns = [
+                "pelvic_tilt",
+                "lumbar_lordosis_angle",
+                "sacral_slope",
+                "pelvic_radius",
+            ]
+            hernia_features = X_multi_class_train[hernia_columns]
+
+            if prediction != "Spondylolisthesis":
+                hernia_explainer = shap.LinearExplainer(
+                    ExtendedPipeline(hierarchical_pipeline.hernia_pipeline),
+                    hierarchical_pipeline.scale_hernia(hernia_features),
+                    feature_names=hernia_features.columns,
+                )
+                hernia_shap_values = hernia_explainer(
+                    hierarchical_pipeline.scale_hernia(
+                        pd.DataFrame(
+                            [
+                                [
+                                    pelvic_tilt,
+                                    lumbar_lordosis_angle,
+                                    sacral_slope,
+                                    pelvic_radius,
+                                ]
+                            ],
+                            columns=hernia_columns,
+                        )
                     )
                 )
-                class_abnormal_prediction = y_pred[:, 0].item()
-                class_normal_prediction = y_pred[:, 1].item()
-
-                explainer = shap.LinearExplainer(
-                    ExtendedPipeline(binary_pipeline),
-                    scaler.transform(X_binary_rfe_train),
-                    feature_names=X_binary_rfe_train.columns,
-                )
-                shap_values = explainer(scaler.transform(input_data))
-            case _:
+    if st.button("Predict", type="primary", icon="🪄", use_container_width=True):
+        match model_choice:
+            case "Binary":
+                prediction = binary_pipeline.predict(input_data)[0]
+            case "Multiclass":
                 hierarchical_pipeline = HierarchicalModel.load(
                     "models/hierarchical.pkl"
                 )
-                COLUMNS = [
-                    "pelvic_incidence",
-                    "pelvic_tilt",
-                    "lumbar_lordosis_angle",
-                    "sacral_slope",
-                    "pelvic_radius",
-                    "degree_spondylolisthesis",
-                ]
-                input_data = pd.DataFrame(
-                    [
-                        [
-                            pelvic_incidence,
-                            pelvic_tilt,
-                            lumbar_lordosis_angle,
-                            sacral_slope,
-                            pelvic_radius,
-                            degree_spondylolisthesis,
-                        ]
-                    ],
-                    columns=COLUMNS,
-                )
                 predictions = hierarchical_pipeline.predict(input_data)
-                prediction = predictions["final_prediction"].iloc[0]
-
-                hernia_columns = [
-                    "pelvic_tilt",
-                    "lumbar_lordosis_angle",
-                    "sacral_slope",
-                    "pelvic_radius",
-                ]
-                hernia_features = X_multi_class_train[hernia_columns]
-
-                if prediction != "Spondylolisthesis":
-                    hernia_explainer = shap.LinearExplainer(
-                        ExtendedPipeline(hierarchical_pipeline.hernia_pipeline),
-                        hierarchical_pipeline.scale_hernia(hernia_features),
-                        feature_names=hernia_features.columns,
-                    )
-                    hernia_shap_values = hernia_explainer(
-                        hierarchical_pipeline.scale_hernia(
-                            pd.DataFrame(
-                                [
-                                    [
-                                        pelvic_tilt,
-                                        lumbar_lordosis_angle,
-                                        sacral_slope,
-                                        pelvic_radius,
-                                    ]
-                                ],
-                                columns=hernia_columns,
-                            )
-                        )
-                    )
 
 with col2:
     if prediction is not None:
