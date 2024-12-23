@@ -88,3 +88,7 @@ We would like to thank:
 ---
 
 For more details or questions, feel free to open an [issue](https://github.com/fzhem/ai-ortho-2024/issues).
+
+## Licensing
+- The dataset used in this project is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Proper attribution is provided in accordance with the license terms.
+- The code and scripts in this repository are licensed under the MIT License. See the LICENSE file for details.
